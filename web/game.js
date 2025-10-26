@@ -40,6 +40,9 @@ class BlockWhackerGame {
         // Touch/mouse handling
         this.touchStart = null;
         this.isDragging = false;
+        this.draggedBlock = null;
+        this.dragOffset = {x: 0, y: 0};
+        this.mousePos = {x: 0, y: 0};
         
         this.init();
     }
@@ -52,27 +55,25 @@ class BlockWhackerGame {
     }
     
     setupEventListeners() {
-        // Touch events for mobile
-        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), {passive: false});
-        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), {passive: false});
-        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), {passive: false});
+        // Canvas mouse/touch events for dragging
+        this.canvas.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
+        this.canvas.addEventListener('mouseup', (e) => this.handleCanvasMouseUp(e));
+        this.canvas.addEventListener('touchmove', (e) => this.handleCanvasTouchMove(e), {passive: false});
+        this.canvas.addEventListener('touchend', (e) => this.handleCanvasTouchEnd(e), {passive: false});
         
-        // Mouse events for desktop
-        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-        
-        // Block selection
+        // Block preview dragging
         document.querySelectorAll('.block-preview').forEach((preview, index) => {
-            preview.addEventListener('click', () => this.selectBlock(index));
+            // Mouse events
+            preview.addEventListener('mousedown', (e) => this.startDragFromPreview(e, index));
+            
+            // Touch events
             preview.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                this.selectBlock(index);
-            });
+                this.startDragFromPreview(e, index);
+            }, {passive: false});
         });
         
         // Control buttons
-        document.getElementById('rotateBtn').addEventListener('click', () => this.rotateBlock());
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
         
@@ -83,85 +84,66 @@ class BlockWhackerGame {
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     }
     
-    handleTouchStart(e) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        this.touchStart = {x, y};
-        this.handlePointerDown(x, y);
-    }
-    
-    handleTouchMove(e) {
-        e.preventDefault();
-        if (!this.touchStart) return;
-        
-        const touch = e.touches[0];
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        this.handlePointerMove(x, y);
-    }
-    
-    handleTouchEnd(e) {
-        e.preventDefault();
-        if (!this.touchStart) return;
-        
-        const touch = e.changedTouches[0];
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        this.handlePointerUp(x, y);
-        this.touchStart = null;
-    }
-    
-    handleMouseDown(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        this.handlePointerDown(x, y);
-    }
-    
-    handleMouseMove(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        this.handlePointerMove(x, y);
-    }
-    
-    handleMouseUp(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        this.handlePointerUp(x, y);
-    }
-    
-    handlePointerDown(x, y) {
-        const gridPos = this.screenToGrid(x, y);
-        if (gridPos) {
-            this.cursorPos = gridPos;
+    startDragFromPreview(e, index) {
+        if (this.availableBlocks[index] && !this.availableBlocks[index].used) {
+            this.draggedBlock = this.availableBlocks[index];
+            this.selectedBlockIndex = index;
             this.isDragging = true;
+            
+            // Get initial position
+            if (e.type === 'mousedown') {
+                this.mousePos = {x: e.clientX, y: e.clientY};
+            } else if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                this.mousePos = {x: touch.clientX, y: touch.clientY};
+            }
+            
+            this.updateBlockPreviews();
         }
     }
     
-    handlePointerMove(x, y) {
-        if (!this.isDragging) return;
-        
+    handleCanvasMouseMove(e) {
+        if (this.isDragging) {
+            e.preventDefault();
+            this.mousePos = {x: e.clientX, y: e.clientY};
+            this.updateCursorFromMouse();
+        }
+    }
+    
+    handleCanvasTouchMove(e) {
+        if (this.isDragging) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            this.mousePos = {x: touch.clientX, y: touch.clientY};
+            this.updateCursorFromMouse();
+        }
+    }
+    
+    handleCanvasMouseUp(e) {
+        if (this.isDragging && this.draggedBlock) {
+            this.placeBlock();
+            this.isDragging = false;
+            this.draggedBlock = null;
+        }
+    }
+    
+    handleCanvasTouchEnd(e) {
+        if (this.isDragging && this.draggedBlock) {
+            e.preventDefault();
+            this.placeBlock();
+            this.isDragging = false;
+            this.draggedBlock = null;
+        }
+    }
+    
+    updateCursorFromMouse() {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = this.mousePos.x - rect.left;
+        const y = this.mousePos.y - rect.top;
         const gridPos = this.screenToGrid(x, y);
         if (gridPos) {
             this.cursorPos = gridPos;
         }
-    }
-    
-    handlePointerUp(x, y) {
-        if (this.isDragging && this.selectedBlock) {
-            this.placeBlock();
-        }
-        this.isDragging = false;
     }
     
     handleKeyDown(e) {
@@ -185,11 +167,6 @@ class BlockWhackerGame {
             case ' ':
                 e.preventDefault();
                 this.placeBlock();
-                break;
-            case 'r':
-            case 'R':
-                e.preventDefault();
-                this.rotateBlock();
                 break;
             case '1':
                 this.selectBlock(0);
@@ -226,35 +203,30 @@ class BlockWhackerGame {
         if (index >= 0 && index < this.availableBlocks.length && !this.availableBlocks[index].used) {
             this.selectedBlock = this.availableBlocks[index];
             this.selectedBlockIndex = index;
+            this.draggedBlock = this.selectedBlock;
             this.updateBlockPreviews();
         }
     }
     
-    rotateBlock() {
-        if (this.selectedBlock) {
-            this.selectedBlock.rotate();
-        }
-    }
-    
     placeBlock() {
-        if (!this.selectedBlock || this.selectedBlock.used) return;
+        if (!this.draggedBlock || this.draggedBlock.used) return;
         
-        if (this.canPlaceBlock(this.selectedBlock, this.cursorPos)) {
+        if (this.canPlaceBlock(this.draggedBlock, this.cursorPos)) {
             // Place the block
-            this.selectedBlock.shape.forEach((row, dy) => {
+            this.draggedBlock.shape.forEach((row, dy) => {
                 row.forEach((cell, dx) => {
                     if (cell) {
                         const x = this.cursorPos.x + dx;
                         const y = this.cursorPos.y + dy;
                         if (x >= 0 && x < this.GRID_SIZE && y >= 0 && y < this.GRID_SIZE) {
-                            this.grid[y][x] = this.selectedBlock.colorIndex;
+                            this.grid[y][x] = this.draggedBlock.colorIndex;
                         }
                     }
                 });
             });
             
             // Mark block as used
-            this.selectedBlock.used = true;
+            this.draggedBlock.used = true;
             this.selectedBlock = null;
             this.selectedBlockIndex = -1;
             
@@ -453,7 +425,7 @@ class BlockWhackerGame {
         this.drawCursor();
         
         // Draw block preview at cursor
-        if (this.selectedBlock && !this.selectedBlock.used) {
+        if (this.draggedBlock && !this.draggedBlock.used && this.isDragging) {
             this.drawBlockPreview();
         }
         
@@ -511,7 +483,7 @@ class BlockWhackerGame {
     }
     
     drawBlockPreview() {
-        const block = this.selectedBlock;
+        const block = this.draggedBlock;
         const color = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
         
         this.ctx.fillStyle = color + '80'; // Semi-transparent
@@ -560,52 +532,59 @@ class Block {
             // Single block
             [[1]],
             
-            // Line blocks
+            // Line blocks (horizontal and vertical)
             [[1, 1]],
             [[1], [1]],
             [[1, 1, 1]],
             [[1], [1], [1]],
+            [[1, 1, 1, 1]],
+            [[1], [1], [1], [1]],
             
-            // L shapes
+            // L shapes (all 4 rotations for each)
             [[1, 1], [1, 0]],
             [[1, 0], [1, 1]],
-            [[1, 1], [0, 1]],
             [[0, 1], [1, 1]],
+            [[1, 1], [0, 1]],
+            
+            // Bigger L shapes (all rotations)
+            [[1, 1, 1], [1, 0, 0]],
+            [[1, 1], [0, 1], [0, 1]],
+            [[0, 0, 1], [1, 1, 1]],
+            [[1, 0], [1, 0], [1, 1]],
+            
+            [[1, 1, 1], [0, 0, 1]],
+            [[0, 1], [0, 1], [1, 1]],
+            [[1, 0, 0], [1, 1, 1]],
+            [[1, 1], [1, 0], [1, 0]],
             
             // Square
             [[1, 1], [1, 1]],
             
-            // T shapes
+            // T shapes (all 4 rotations)
             [[1, 1, 1], [0, 1, 0]],
-            [[1, 0], [1, 1], [1, 0]],
-            [[0, 1, 0], [1, 1, 1]],
             [[0, 1], [1, 1], [0, 1]],
+            [[0, 1, 0], [1, 1, 1]],
+            [[1, 0], [1, 1], [1, 0]],
             
-            // Big L
-            [[1, 1, 1], [1, 0, 0]],
-            [[1, 1, 1], [0, 0, 1]],
-            [[1, 0, 0], [1, 1, 1]],
-            [[0, 0, 1], [1, 1, 1]]
+            // Z shapes (both orientations)
+            [[1, 1, 0], [0, 1, 1]],
+            [[0, 1], [1, 1], [1, 0]],
+            [[0, 1, 1], [1, 1, 0]],
+            [[1, 0], [1, 1], [0, 1]],
+            
+            // Plus shape
+            [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+            
+            // Corner pieces (all rotations)
+            [[1, 1], [1, 1], [1, 0]],
+            [[1, 1], [1, 1], [0, 1]],
+            [[1, 0], [1, 1], [1, 1]],
+            [[0, 1], [1, 1], [1, 1]]
         ];
         
         this.shape = this.shapes[Math.floor(Math.random() * this.shapes.length)];
         this.colorIndex = Math.floor(Math.random() * 8) + 1;
         this.used = false;
-    }
-    
-    rotate() {
-        // Rotate 90 degrees clockwise
-        const rows = this.shape.length;
-        const cols = this.shape[0].length;
-        const rotated = Array(cols).fill().map(() => Array(rows).fill(0));
-        
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                rotated[x][rows - 1 - y] = this.shape[y][x];
-            }
-        }
-        
-        this.shape = rotated;
     }
 }
 
