@@ -43,6 +43,7 @@ class BlockWhackerGame {
         this.draggedBlock = null;
         this.dragOffset = {x: 0, y: 0};
         this.mousePos = {x: 0, y: 0};
+        this.rawMousePos = {x: 0, y: 0}; // Actual screen position for drawing
         
         this.init();
     }
@@ -105,6 +106,8 @@ class BlockWhackerGame {
     handleCanvasMouseMove(e) {
         if (this.isDragging) {
             e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             this.mousePos = {x: e.clientX, y: e.clientY};
             this.updateCursorFromMouse();
         }
@@ -114,6 +117,8 @@ class BlockWhackerGame {
         if (this.isDragging) {
             e.preventDefault();
             const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
             this.mousePos = {x: touch.clientX, y: touch.clientY};
             this.updateCursorFromMouse();
         }
@@ -137,10 +142,7 @@ class BlockWhackerGame {
     }
     
     updateCursorFromMouse() {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = this.mousePos.x - rect.left;
-        const y = this.mousePos.y - rect.top;
-        const gridPos = this.screenToGrid(x, y);
+        const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
         if (gridPos) {
             this.cursorPos = gridPos;
         }
@@ -421,12 +423,14 @@ class BlockWhackerGame {
         // Draw placed blocks
         this.drawPlacedBlocks();
         
-        // Draw cursor
-        this.drawCursor();
+        // Draw cursor only when not dragging
+        if (!this.isDragging) {
+            this.drawCursor();
+        }
         
-        // Draw block preview at cursor
+        // Draw block preview - either at cursor or following finger/mouse
         if (this.draggedBlock && !this.draggedBlock.used && this.isDragging) {
-            this.drawBlockPreview();
+            this.drawDraggedBlock();
         }
         
         // Draw pause overlay
@@ -505,6 +509,63 @@ class BlockWhackerGame {
                 }
             });
         });
+    }
+    
+    drawDraggedBlock() {
+        const block = this.draggedBlock;
+        const color = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
+        const cellSize = this.CELL_SIZE;
+        
+        // Calculate block dimensions
+        const blockWidth = block.shape[0].length * cellSize;
+        const blockHeight = block.shape.length * cellSize;
+        
+        // Center the block on the cursor/finger position
+        const offsetX = this.rawMousePos.x - blockWidth / 2;
+        const offsetY = this.rawMousePos.y - blockHeight / 2;
+        
+        // Draw the block following the cursor
+        this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 2;
+        
+        block.shape.forEach((row, dy) => {
+            row.forEach((cell, dx) => {
+                if (cell) {
+                    const x = offsetX + dx * cellSize;
+                    const y = offsetY + dy * cellSize;
+                    
+                    // Draw filled cell
+                    this.ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                    
+                    // Draw border
+                    this.ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                }
+            });
+        });
+        
+        // Also draw ghost preview on grid if valid position
+        const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
+        if (gridPos && this.canPlaceBlock(block, gridPos)) {
+            this.ctx.fillStyle = color + '40'; // Very transparent
+            block.shape.forEach((row, dy) => {
+                row.forEach((cell, dx) => {
+                    if (cell) {
+                        const gx = gridPos.x + dx;
+                        const gy = gridPos.y + dy;
+                        
+                        if (gx >= 0 && gx < this.GRID_SIZE && gy >= 0 && gy < this.GRID_SIZE) {
+                            this.ctx.fillRect(
+                                this.GRID_OFFSET_X + gx * this.CELL_SIZE + 2,
+                                this.GRID_OFFSET_Y + gy * this.CELL_SIZE + 2,
+                                this.CELL_SIZE - 4,
+                                this.CELL_SIZE - 4
+                            );
+                        }
+                    }
+                });
+            });
+        }
     }
     
     drawPauseOverlay() {
