@@ -50,19 +50,17 @@ export class Renderer {
     }
     
     drawPlacedBlocks() {
-        const blockScale = 0.9; // Blocks are 90% of cell size
-        const offset = (GAME_CONFIG.CELL_SIZE * (1 - blockScale)) / 2;
-        
+        // Placed blocks take full cell size
         for (let y = 0; y < GAME_CONFIG.GRID_SIZE; y++) {
             for (let x = 0; x < GAME_CONFIG.GRID_SIZE; x++) {
                 if (this.game.grid[y][x] !== 0) {
                     const color = COLORS.blocks[(this.game.grid[y][x] - 1) % COLORS.blocks.length];
                     this.ctx.fillStyle = color;
                     this.ctx.fillRect(
-                        GAME_CONFIG.GRID_OFFSET_X + x * GAME_CONFIG.CELL_SIZE + offset,
-                        GAME_CONFIG.GRID_OFFSET_Y + y * GAME_CONFIG.CELL_SIZE + offset,
-                        GAME_CONFIG.CELL_SIZE * blockScale,
-                        GAME_CONFIG.CELL_SIZE * blockScale
+                        GAME_CONFIG.GRID_OFFSET_X + x * GAME_CONFIG.CELL_SIZE + 2,
+                        GAME_CONFIG.GRID_OFFSET_Y + y * GAME_CONFIG.CELL_SIZE + 2,
+                        GAME_CONFIG.CELL_SIZE - 4,
+                        GAME_CONFIG.CELL_SIZE - 4
                     );
                 }
             }
@@ -83,8 +81,7 @@ export class Renderer {
     drawDraggedBlock() {
         const block = this.game.draggedBlock;
         const color = COLORS.blocks[block.colorIndex % COLORS.blocks.length];
-        const blockScale = 0.9; // Blocks are 90% of cell size
-        const offset = (GAME_CONFIG.CELL_SIZE * (1 - blockScale)) / 2;
+        const shapeScale = 0.85; // Scale the entire shape to 85%
         
         // Get the display size vs internal canvas size
         const rect = this.canvas.getBoundingClientRect();
@@ -95,9 +92,9 @@ export class Renderer {
         const scaledX = this.game.rawMousePos.x * scaleX;
         const scaledY = this.game.rawMousePos.y * scaleY;
         
-        const cellSize = GAME_CONFIG.CELL_SIZE;
+        const cellSize = GAME_CONFIG.CELL_SIZE * shapeScale; // Scale cell size for entire shape
         
-        // Calculate block dimensions
+        // Calculate block dimensions with scaled cells
         const blockWidth = block.shape[0].length * cellSize;
         const blockHeight = block.shape.length * cellSize;
         
@@ -117,14 +114,14 @@ export class Renderer {
         block.shape.forEach((row, dy) => {
             row.forEach((cell, dx) => {
                 if (cell) {
-                    const x = offsetX + dx * cellSize + offset;
-                    const y = offsetY + dy * cellSize + offset;
+                    const x = offsetX + dx * cellSize;
+                    const y = offsetY + dy * cellSize;
                     
-                    // Draw filled cell
-                    this.ctx.fillRect(x, y, cellSize * blockScale, cellSize * blockScale);
+                    // Draw filled cell with padding
+                    this.ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
                     
                     // Draw border
-                    this.ctx.strokeRect(x, y, cellSize * blockScale, cellSize * blockScale);
+                    this.ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
                 }
             });
         });
@@ -150,15 +147,22 @@ export class Renderer {
             const color = COLORS.blocks[block.colorIndex % COLORS.blocks.length];
             const blockWidth = block.shape[0].length;
             const blockHeight = block.shape.length;
-            const cellSize = Math.min(
+            const shapeScale = 0.85; // Scale entire shape to 85%
+            
+            // Calculate base cell size to fit the canvas
+            const baseCellSize = Math.min(
                 (canvas.width - 20) / blockWidth,
                 (canvas.height - 20) / blockHeight
             );
-            const blockScale = 0.9; // Blocks are 90% of cell size
-            const offset = (cellSize * (1 - blockScale)) / 2;
             
-            const offsetX = (canvas.width - blockWidth * cellSize) / 2;
-            const offsetY = (canvas.height - blockHeight * cellSize) / 2;
+            // Apply scale to the cell size (this creates consistent padding)
+            const cellSize = baseCellSize * shapeScale;
+            
+            // Center the scaled shape
+            const totalWidth = blockWidth * cellSize;
+            const totalHeight = blockHeight * cellSize;
+            const offsetX = (canvas.width - totalWidth) / 2;
+            const offsetY = (canvas.height - totalHeight) / 2;
             
             ctx.fillStyle = color;
             ctx.strokeStyle = '#fff';
@@ -168,16 +172,16 @@ export class Renderer {
                 row.forEach((cell, x) => {
                     if (cell) {
                         ctx.fillRect(
-                            offsetX + x * cellSize + offset,
-                            offsetY + y * cellSize + offset,
-                            cellSize * blockScale,
-                            cellSize * blockScale
+                            offsetX + x * cellSize + 2,
+                            offsetY + y * cellSize + 2,
+                            cellSize - 4,
+                            cellSize - 4
                         );
                         ctx.strokeRect(
-                            offsetX + x * cellSize + offset,
-                            offsetY + y * cellSize + offset,
-                            cellSize * blockScale,
-                            cellSize * blockScale
+                            offsetX + x * cellSize + 2,
+                            offsetY + y * cellSize + 2,
+                            cellSize - 4,
+                            cellSize - 4
                         );
                     }
                 });
