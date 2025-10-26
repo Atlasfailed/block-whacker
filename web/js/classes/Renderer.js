@@ -50,16 +50,19 @@ export class Renderer {
     }
     
     drawPlacedBlocks() {
+        const blockScale = 0.9; // Blocks are 90% of cell size
+        const offset = (GAME_CONFIG.CELL_SIZE * (1 - blockScale)) / 2;
+        
         for (let y = 0; y < GAME_CONFIG.GRID_SIZE; y++) {
             for (let x = 0; x < GAME_CONFIG.GRID_SIZE; x++) {
                 if (this.game.grid[y][x] !== 0) {
                     const color = COLORS.blocks[(this.game.grid[y][x] - 1) % COLORS.blocks.length];
                     this.ctx.fillStyle = color;
                     this.ctx.fillRect(
-                        GAME_CONFIG.GRID_OFFSET_X + x * GAME_CONFIG.CELL_SIZE + 2,
-                        GAME_CONFIG.GRID_OFFSET_Y + y * GAME_CONFIG.CELL_SIZE + 2,
-                        GAME_CONFIG.CELL_SIZE - 4,
-                        GAME_CONFIG.CELL_SIZE - 4
+                        GAME_CONFIG.GRID_OFFSET_X + x * GAME_CONFIG.CELL_SIZE + offset,
+                        GAME_CONFIG.GRID_OFFSET_Y + y * GAME_CONFIG.CELL_SIZE + offset,
+                        GAME_CONFIG.CELL_SIZE * blockScale,
+                        GAME_CONFIG.CELL_SIZE * blockScale
                     );
                 }
             }
@@ -80,6 +83,8 @@ export class Renderer {
     drawDraggedBlock() {
         const block = this.game.draggedBlock;
         const color = COLORS.blocks[block.colorIndex % COLORS.blocks.length];
+        const blockScale = 0.9; // Blocks are 90% of cell size
+        const offset = (GAME_CONFIG.CELL_SIZE * (1 - blockScale)) / 2;
         
         // Get the display size vs internal canvas size
         const rect = this.canvas.getBoundingClientRect();
@@ -112,14 +117,14 @@ export class Renderer {
         block.shape.forEach((row, dy) => {
             row.forEach((cell, dx) => {
                 if (cell) {
-                    const x = offsetX + dx * cellSize;
-                    const y = offsetY + dy * cellSize;
+                    const x = offsetX + dx * cellSize + offset;
+                    const y = offsetY + dy * cellSize + offset;
                     
                     // Draw filled cell
-                    this.ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                    this.ctx.fillRect(x, y, cellSize * blockScale, cellSize * blockScale);
                     
                     // Draw border
-                    this.ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                    this.ctx.strokeRect(x, y, cellSize * blockScale, cellSize * blockScale);
                 }
             });
         });
@@ -149,6 +154,8 @@ export class Renderer {
                 (canvas.width - 20) / blockWidth,
                 (canvas.height - 20) / blockHeight
             );
+            const blockScale = 0.9; // Blocks are 90% of cell size
+            const offset = (cellSize * (1 - blockScale)) / 2;
             
             const offsetX = (canvas.width - blockWidth * cellSize) / 2;
             const offsetY = (canvas.height - blockHeight * cellSize) / 2;
@@ -161,16 +168,16 @@ export class Renderer {
                 row.forEach((cell, x) => {
                     if (cell) {
                         ctx.fillRect(
-                            offsetX + x * cellSize + 2,
-                            offsetY + y * cellSize + 2,
-                            cellSize - 4,
-                            cellSize - 4
+                            offsetX + x * cellSize + offset,
+                            offsetY + y * cellSize + offset,
+                            cellSize * blockScale,
+                            cellSize * blockScale
                         );
                         ctx.strokeRect(
-                            offsetX + x * cellSize + 2,
-                            offsetY + y * cellSize + 2,
-                            cellSize - 4,
-                            cellSize - 4
+                            offsetX + x * cellSize + offset,
+                            offsetY + y * cellSize + offset,
+                            cellSize * blockScale,
+                            cellSize * blockScale
                         );
                     }
                 });
