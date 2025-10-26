@@ -62,6 +62,28 @@ class BlockWhackerGame {
         this.canvas.addEventListener('touchmove', (e) => this.handleCanvasTouchMove(e), {passive: false});
         this.canvas.addEventListener('touchend', (e) => this.handleCanvasTouchEnd(e), {passive: false});
         
+        // Global mouse/touch events for dragging outside canvas
+        document.addEventListener('mousemove', (e) => {
+            if (this.isDragging) {
+                this.handleCanvasMouseMove(e);
+            }
+        });
+        document.addEventListener('mouseup', (e) => {
+            if (this.isDragging) {
+                this.handleCanvasMouseUp(e);
+            }
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (this.isDragging) {
+                this.handleCanvasTouchMove(e);
+            }
+        }, {passive: false});
+        document.addEventListener('touchend', (e) => {
+            if (this.isDragging) {
+                this.handleCanvasTouchEnd(e);
+            }
+        }, {passive: false});
+        
         // Block preview dragging
         document.querySelectorAll('.block-preview').forEach((preview, index) => {
             // Mouse events
@@ -91,18 +113,21 @@ class BlockWhackerGame {
             this.selectedBlockIndex = index;
             this.isDragging = true;
             
-            // Get initial position
+            // Get initial position - use the touch/click position directly
             const rect = this.canvas.getBoundingClientRect();
             if (e.type === 'mousedown') {
                 this.mousePos = {x: e.clientX, y: e.clientY};
+                // Map screen position to canvas coordinates
                 this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             } else if (e.type === 'touchstart') {
                 const touch = e.touches[0];
                 this.mousePos = {x: touch.clientX, y: touch.clientY};
+                // Map screen position to canvas coordinates
                 this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
             }
             
-            this.updateBlockPreviews();
+            // Don't call updateBlockPreviews here as it will clear the preview
+            // The preview will update when the block is placed or drag ends
         }
     }
     
