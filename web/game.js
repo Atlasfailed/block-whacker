@@ -187,7 +187,9 @@ class BlockWhackerGame {
             const blockWidth = this.draggedBlock.shape[0].length * cellSize;
             const blockHeight = this.draggedBlock.shape.length * cellSize;
             
-            const fingerOffsetY = 120;
+            // Dynamic offset - taller blocks need more offset to stay above finger
+            const baseOffset = 80;
+            const fingerOffsetY = baseOffset + blockHeight;
             const offsetX = scaledX - blockWidth / 2;
             const offsetY = scaledY - blockHeight / 2 - fingerOffsetY;
             
@@ -201,7 +203,16 @@ class BlockWhackerGame {
             const gridPos = this.screenToGrid(screenCenterX, screenCenterY);
             
             if (gridPos) {
-                this.cursorPos = gridPos;
+                // Check if this position is valid
+                if (this.canPlaceBlock(this.draggedBlock, gridPos)) {
+                    this.cursorPos = gridPos;
+                } else {
+                    // Find nearest valid position
+                    const nearest = this.findNearestValidPosition(this.draggedBlock, gridPos);
+                    if (nearest) {
+                        this.cursorPos = nearest;
+                    }
+                }
             }
         } else {
             // Normal cursor tracking when not dragging
@@ -210,6 +221,44 @@ class BlockWhackerGame {
                 this.cursorPos = gridPos;
             }
         }
+    }
+    
+    findNearestValidPosition(block, targetPos) {
+        // Search in expanding circles around the target position
+        const maxDistance = 3; // Search within 3 cells
+        
+        for (let distance = 1; distance <= maxDistance; distance++) {
+            let bestPos = null;
+            let bestDist = Infinity;
+            
+            // Check all positions at this distance
+            for (let dy = -distance; dy <= distance; dy++) {
+                for (let dx = -distance; dx <= distance; dx++) {
+                    // Only check positions at exactly this distance (Manhattan distance)
+                    if (Math.abs(dx) + Math.abs(dy) !== distance) continue;
+                    
+                    const testPos = {
+                        x: targetPos.x + dx,
+                        y: targetPos.y + dy
+                    };
+                    
+                    // Check if this position is valid
+                    if (this.canPlaceBlock(block, testPos)) {
+                        // Calculate Euclidean distance for smoother feel
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            bestPos = testPos;
+                        }
+                    }
+                }
+            }
+            
+            // Return the first valid position we find
+            if (bestPos) return bestPos;
+        }
+        
+        return null; // No valid position found within search range
     }
     
     handleKeyDown(e) {
@@ -602,8 +651,9 @@ class BlockWhackerGame {
         const blockWidth = block.shape[0].length * cellSize;
         const blockHeight = block.shape.length * cellSize;
         
-        // Offset the block upward so it's visible above the finger while dragging
-        const fingerOffsetY = 120; // Offset upward in canvas coordinates
+        // Dynamic offset - taller blocks need more offset to stay above finger
+        const baseOffset = 80;
+        const fingerOffsetY = baseOffset + blockHeight;
         
         // Center the block horizontally on the cursor/finger, offset vertically above it
         const offsetX = scaledX - blockWidth / 2;
