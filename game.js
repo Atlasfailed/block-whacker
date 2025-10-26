@@ -113,17 +113,21 @@ class BlockWhackerGame {
             this.selectedBlockIndex = index;
             this.isDragging = true;
             
-            // Get initial position - use the touch/click position directly
+            // Get initial position - the touch is on the preview box, not the canvas
             const rect = this.canvas.getBoundingClientRect();
             if (e.type === 'mousedown') {
                 this.mousePos = {x: e.clientX, y: e.clientY};
-                // Map screen position to canvas coordinates
+                // Convert screen position to canvas-relative coordinates
+                // This can be negative or beyond canvas bounds - that's okay!
                 this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+                console.log('Mouse drag start:', 'clientX:', e.clientX, 'clientY:', e.clientY, 'rawMousePos:', this.rawMousePos, 'canvasRect:', rect);
             } else if (e.type === 'touchstart') {
                 const touch = e.touches[0];
                 this.mousePos = {x: touch.clientX, y: touch.clientY};
-                // Map screen position to canvas coordinates
+                // Convert screen position to canvas-relative coordinates
+                // This can be negative or beyond canvas bounds - that's okay!
                 this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
+                console.log('Touch drag start:', 'clientX:', touch.clientX, 'clientY:', touch.clientY, 'rawMousePos:', this.rawMousePos, 'canvasRect:', rect);
             }
             
             // Don't call updateBlockPreviews here as it will clear the preview
