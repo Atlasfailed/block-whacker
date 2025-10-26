@@ -559,6 +559,8 @@ class BlockWhackerGame {
         const offsetX = this.rawMousePos.x - blockWidth / 2;
         const offsetY = this.rawMousePos.y - blockHeight / 2;
         
+        console.log('Drawing dragged block at rawMousePos:', this.rawMousePos, 'offset:', {x: offsetX, y: offsetY}, 'blockSize:', {w: blockWidth, h: blockHeight});
+        
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
         this.ctx.strokeStyle = '#fff';
