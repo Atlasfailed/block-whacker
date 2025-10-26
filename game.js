@@ -347,6 +347,7 @@ class BlockWhackerGame {
                 container.style.top = '50%';
                 container.style.left = '50%';
                 container.style.transform = 'translate(-50%, -50%)';
+                container.style.pointerEvents = 'none';
                 
                 // Draw mini block shape
                 const blockColor = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
