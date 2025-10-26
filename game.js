@@ -120,14 +120,12 @@ class BlockWhackerGame {
                 // Convert screen position to canvas-relative coordinates
                 // This can be negative or beyond canvas bounds - that's okay!
                 this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
-                console.log('Mouse drag start:', 'clientX:', e.clientX, 'clientY:', e.clientY, 'rawMousePos:', this.rawMousePos, 'canvasRect:', rect);
             } else if (e.type === 'touchstart') {
                 const touch = e.touches[0];
                 this.mousePos = {x: touch.clientX, y: touch.clientY};
                 // Convert screen position to canvas-relative coordinates
                 // This can be negative or beyond canvas bounds - that's okay!
                 this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
-                console.log('Touch drag start:', 'clientX:', touch.clientX, 'clientY:', touch.clientY, 'rawMousePos:', this.rawMousePos, 'canvasRect:', rect);
             }
             
             // Don't call updateBlockPreviews here as it will clear the preview
@@ -139,7 +137,7 @@ class BlockWhackerGame {
         if (this.isDragging) {
             e.preventDefault();
             const rect = this.canvas.getBoundingClientRect();
-            // Use clientX/Y relative to canvas for drawing (can be negative or beyond canvas)
+            // Get display-relative position (can be negative or beyond canvas display bounds)
             this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             this.mousePos = {x: e.clientX, y: e.clientY};
             this.updateCursorFromMouse();
@@ -151,7 +149,7 @@ class BlockWhackerGame {
             e.preventDefault();
             const touch = e.touches[0];
             const rect = this.canvas.getBoundingClientRect();
-            // Use clientX/Y relative to canvas for drawing (can be negative or beyond canvas)
+            // Get display-relative position (can be negative or beyond canvas display bounds)
             this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
             this.mousePos = {x: touch.clientX, y: touch.clientY};
             this.updateCursorFromMouse();
@@ -221,8 +219,15 @@ class BlockWhackerGame {
     }
     
     screenToGrid(x, y) {
-        const gridX = Math.floor((x - this.GRID_OFFSET_X) / this.CELL_SIZE);
-        const gridY = Math.floor((y - this.GRID_OFFSET_Y) / this.CELL_SIZE);
+        // Scale the display coordinates to canvas internal coordinates
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        const scaledX = x * scaleX;
+        const scaledY = y * scaleY;
+        
+        const gridX = Math.floor((scaledX - this.GRID_OFFSET_X) / this.CELL_SIZE);
+        const gridY = Math.floor((scaledY - this.GRID_OFFSET_Y) / this.CELL_SIZE);
         
         if (gridX >= 0 && gridX < this.GRID_SIZE && gridY >= 0 && gridY < this.GRID_SIZE) {
             return {x: gridX, y: gridY};
@@ -568,8 +573,6 @@ class BlockWhackerGame {
         // Center the block on the cursor/finger position
         const offsetX = scaledX - blockWidth / 2;
         const offsetY = scaledY - blockHeight / 2;
-        
-        console.log('Drawing dragged block - rawMousePos:', this.rawMousePos, 'scale:', {x: scaleX, y: scaleY}, 'scaled:', {x: scaledX, y: scaledY}, 'offset:', {x: offsetX, y: offsetY});
         
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
