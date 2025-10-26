@@ -135,6 +135,7 @@ class BlockWhackerGame {
         if (this.isDragging) {
             e.preventDefault();
             const rect = this.canvas.getBoundingClientRect();
+            // Use clientX/Y relative to canvas for drawing (can be negative or beyond canvas)
             this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             this.mousePos = {x: e.clientX, y: e.clientY};
             this.updateCursorFromMouse();
@@ -146,6 +147,7 @@ class BlockWhackerGame {
             e.preventDefault();
             const touch = e.touches[0];
             const rect = this.canvas.getBoundingClientRect();
+            // Use clientX/Y relative to canvas for drawing (can be negative or beyond canvas)
             this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
             this.mousePos = {x: touch.clientX, y: touch.clientY};
             this.updateCursorFromMouse();
