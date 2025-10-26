@@ -100,6 +100,7 @@
         }
         
         .block-preview {
+            position: relative;
             width: 60px;
             height: 60px;
             border: 2px solid rgba(255,255,255,0.3);
@@ -108,6 +109,10 @@
             cursor: pointer;
             touch-action: manipulation;
             transition: all 0.2s;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .block-preview.selected {

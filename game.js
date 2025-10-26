@@ -364,10 +364,22 @@ class BlockWhackerGame {
                 // Clear previous content
                 preview.innerHTML = '';
                 
+                // Create a container for the mini block
+                const container = document.createElement('div');
+                container.style.position = 'relative';
+                
                 // Draw mini block shape
                 const blockColor = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
-                const cellSize = 12;
-                const padding = 5;
+                const cellSize = 10;
+                const gap = 2;
+                
+                // Calculate dimensions to center the block
+                const blockWidth = block.shape[0].length;
+                const blockHeight = block.shape.length;
+                const totalWidth = blockWidth * (cellSize + gap) - gap;
+                const totalHeight = blockHeight * (cellSize + gap) - gap;
+                const offsetX = (56 - totalWidth) / 2; // 56 = 60px - 4px padding
+                const offsetY = (56 - totalHeight) / 2;
                 
                 block.shape.forEach((row, y) => {
                     row.forEach((cell, x) => {
@@ -377,15 +389,16 @@ class BlockWhackerGame {
                             miniCell.style.width = cellSize + 'px';
                             miniCell.style.height = cellSize + 'px';
                             miniCell.style.backgroundColor = block.used ? '#666' : blockColor;
-                            miniCell.style.left = (padding + x * (cellSize + 2)) + 'px';
-                            miniCell.style.top = (padding + y * (cellSize + 2)) + 'px';
+                            miniCell.style.left = (offsetX + x * (cellSize + gap)) + 'px';
+                            miniCell.style.top = (offsetY + y * (cellSize + gap)) + 'px';
                             miniCell.style.borderRadius = '2px';
-                            preview.appendChild(miniCell);
+                            miniCell.style.boxShadow = '0 1px 2px rgba(0,0,0,0.3)';
+                            container.appendChild(miniCell);
                         }
                     });
                 });
                 
-                preview.style.position = 'relative';
+                preview.appendChild(container);
                 preview.style.backgroundColor = block.used ? 
                     'rgba(100,100,100,0.2)' : 
                     'rgba(255,255,255,0.1)';
