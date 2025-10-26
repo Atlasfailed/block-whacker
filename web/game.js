@@ -45,12 +45,17 @@ class BlockWhackerGame {
         this.mousePos = {x: 0, y: 0};
         this.rawMousePos = {x: 0, y: 0}; // Actual screen position for drawing
         
+        // Undo functionality
+        this.lastPlacement = null;
+        this.canUndo = false;
+        
         this.init();
     }
     
     init() {
         this.setupEventListeners();
         this.generateNewBlocks();
+        this.updateUndoButton(); // Initialize undo button state
         this.gameLoop();
         this.updateUI();
     }
@@ -99,6 +104,7 @@ class BlockWhackerGame {
         // Control buttons
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+        document.getElementById('undoBtn').addEventListener('click', () => this.undo());
         
         // Keyboard controls
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
@@ -334,6 +340,18 @@ class BlockWhackerGame {
         if (!this.draggedBlock || this.draggedBlock.used) return;
         
         if (this.canPlaceBlock(this.draggedBlock, this.cursorPos)) {
+            // Save state for undo (deep copy of grid and block info)
+            this.lastPlacement = {
+                grid: this.grid.map(row => [...row]),
+                block: this.draggedBlock,
+                blockIndex: this.selectedBlockIndex,
+                position: {...this.cursorPos},
+                score: this.score,
+                linesCleared: this.linesCleared
+            };
+            this.canUndo = true;
+            this.updateUndoButton();
+            
             // Place the block
             this.draggedBlock.shape.forEach((row, dy) => {
                 row.forEach((cell, dx) => {
@@ -362,6 +380,35 @@ class BlockWhackerGame {
             
             this.updateBlockPreviews();
             this.updateUI();
+        }
+    }
+    
+    undo() {
+        if (!this.canUndo || !this.lastPlacement) return;
+        
+        // Restore grid state
+        this.grid = this.lastPlacement.grid;
+        
+        // Restore the block as unused
+        this.lastPlacement.block.used = false;
+        
+        // Restore score and lines
+        this.score = this.lastPlacement.score;
+        this.linesCleared = this.lastPlacement.linesCleared;
+        
+        // Clear undo state so it can't be used twice
+        this.canUndo = false;
+        this.updateUndoButton();
+        
+        this.updateBlockPreviews();
+        this.updateUI();
+    }
+    
+    updateUndoButton() {
+        const undoBtn = document.getElementById('undoBtn');
+        if (undoBtn) {
+            undoBtn.disabled = !this.canUndo;
+            undoBtn.style.opacity = this.canUndo ? '1' : '0.5';
         }
     }
     
@@ -521,6 +568,11 @@ class BlockWhackerGame {
         this.cursorPos = {x: 0, y: 0};
         this.isPaused = false;
         this.gameOver = false;
+        
+        // Reset undo state
+        this.lastPlacement = null;
+        this.canUndo = false;
+        this.updateUndoButton();
         
         this.generateNewBlocks();
         this.updateUI();
