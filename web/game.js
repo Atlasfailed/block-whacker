@@ -347,6 +347,8 @@ class BlockWhackerGame {
             this.availableBlocks.push(new Block());
         }
         
+        // Auto-select first block
+        this.selectBlock(0);
         this.updateBlockPreviews();
     }
     
@@ -356,11 +358,37 @@ class BlockWhackerGame {
             preview.classList.toggle('selected', index === this.selectedBlockIndex);
             
             if (this.availableBlocks[index]) {
-                preview.style.opacity = this.availableBlocks[index].used ? '0.3' : '1';
-                preview.textContent = (index + 1).toString();
-                preview.style.backgroundColor = this.availableBlocks[index].used ? 
+                const block = this.availableBlocks[index];
+                preview.style.opacity = block.used ? '0.3' : '1';
+                
+                // Clear previous content
+                preview.innerHTML = '';
+                
+                // Draw mini block shape
+                const blockColor = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
+                const cellSize = 12;
+                const padding = 5;
+                
+                block.shape.forEach((row, y) => {
+                    row.forEach((cell, x) => {
+                        if (cell) {
+                            const miniCell = document.createElement('div');
+                            miniCell.style.position = 'absolute';
+                            miniCell.style.width = cellSize + 'px';
+                            miniCell.style.height = cellSize + 'px';
+                            miniCell.style.backgroundColor = block.used ? '#666' : blockColor;
+                            miniCell.style.left = (padding + x * (cellSize + 2)) + 'px';
+                            miniCell.style.top = (padding + y * (cellSize + 2)) + 'px';
+                            miniCell.style.borderRadius = '2px';
+                            preview.appendChild(miniCell);
+                        }
+                    });
+                });
+                
+                preview.style.position = 'relative';
+                preview.style.backgroundColor = block.used ? 
                     'rgba(100,100,100,0.2)' : 
-                    this.COLORS.blocks[this.availableBlocks[index].colorIndex % this.COLORS.blocks.length] + '40';
+                    'rgba(255,255,255,0.1)';
             }
         });
     }
