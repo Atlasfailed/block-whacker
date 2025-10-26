@@ -571,8 +571,8 @@ class BlockWhackerGame {
         const blockHeight = block.shape.length * cellSize;
         
         // Offset the block slightly to the left and up so it's visible while dragging
-        // This prevents your finger from covering the block
-        const fingerOffset = 60; // pixels to offset from finger position
+        // Apply offset in scaled (canvas) coordinates
+        const fingerOffset = 80; // pixels to offset from finger position (in canvas coordinates)
         
         // Center the block on the cursor/finger position, then offset
         const offsetX = scaledX - blockWidth / 2 - fingerOffset;
@@ -601,7 +601,7 @@ class BlockWhackerGame {
         // Also draw ghost preview on grid if valid position
         const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
         if (gridPos && this.canPlaceBlock(block, gridPos)) {
-            this.ctx.fillStyle = color + '40'; // Very transparent
+            this.ctx.fillStyle = color + '60'; // Semi-transparent (increased from 40 for better visibility)
             block.shape.forEach((row, dy) => {
                 row.forEach((cell, dx) => {
                     if (cell) {
