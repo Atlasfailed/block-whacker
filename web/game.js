@@ -366,20 +366,25 @@ class BlockWhackerGame {
                 
                 // Create a container for the mini block
                 const container = document.createElement('div');
-                container.style.position = 'relative';
+                container.style.position = 'absolute';
+                container.style.top = '50%';
+                container.style.left = '50%';
+                container.style.transform = 'translate(-50%, -50%)';
                 
                 // Draw mini block shape
                 const blockColor = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
                 const cellSize = 10;
                 const gap = 2;
                 
-                // Calculate dimensions to center the block
+                // Calculate dimensions
                 const blockWidth = block.shape[0].length;
                 const blockHeight = block.shape.length;
                 const totalWidth = blockWidth * (cellSize + gap) - gap;
                 const totalHeight = blockHeight * (cellSize + gap) - gap;
-                const offsetX = (56 - totalWidth) / 2; // 56 = 60px - 4px padding
-                const offsetY = (56 - totalHeight) / 2;
+                
+                // Position relative to container center
+                const startX = -totalWidth / 2;
+                const startY = -totalHeight / 2;
                 
                 block.shape.forEach((row, y) => {
                     row.forEach((cell, x) => {
@@ -389,8 +394,8 @@ class BlockWhackerGame {
                             miniCell.style.width = cellSize + 'px';
                             miniCell.style.height = cellSize + 'px';
                             miniCell.style.backgroundColor = block.used ? '#666' : blockColor;
-                            miniCell.style.left = (offsetX + x * (cellSize + gap)) + 'px';
-                            miniCell.style.top = (offsetY + y * (cellSize + gap)) + 'px';
+                            miniCell.style.left = (startX + x * (cellSize + gap)) + 'px';
+                            miniCell.style.top = (startY + y * (cellSize + gap)) + 'px';
                             miniCell.style.borderRadius = '2px';
                             miniCell.style.boxShadow = '0 1px 2px rgba(0,0,0,0.3)';
                             container.appendChild(miniCell);
