@@ -1,9 +1,11 @@
 // Main Game Class - Block Whacker Game Engine
 import { GAME_CONFIG, COLORS, SCORING } from '../utils/constants.js';
 import { screenToGrid, findNearestValidPosition } from '../utils/coordinates.js';
+import { hasAnyValidMoves } from '../utils/gameLogic.js';
 import { Block } from './Block.js';
 import { Renderer } from './Renderer.js';
 import { InputHandler } from './InputHandler.js';
+import { EffectsManager } from './EffectsManager.js';
 
 export class BlockWhackerGame {
     constructor(canvasId) {
@@ -40,9 +42,13 @@ export class BlockWhackerGame {
         this.lastPlacement = null;
         this.canUndo = false;
         
+        // Timing for animations
+        this.lastFrameTime = performance.now();
+        
         // Initialize subsystems
         this.renderer = new Renderer(this);
         this.inputHandler = new InputHandler(this);
+        this.effectsManager = new EffectsManager(this);
         
         this.init();
     }
@@ -194,6 +200,9 @@ export class BlockWhackerGame {
                 });
             });
             
+            // Create placement effect
+            this.effectsManager.createBlockPlacementEffect(this.draggedBlock, this.cursorPos);
+            
             // Mark block as used
             this.draggedBlock.used = true;
             this.selectedBlock = null;
@@ -206,6 +215,9 @@ export class BlockWhackerGame {
             if (this.availableBlocks.every(block => block.used)) {
                 this.generateNewBlocks();
             }
+            
+            // Check for game over
+            this.checkGameOver();
             
             this.updateBlockPreviews();
             this.updateUI();
@@ -263,6 +275,11 @@ export class BlockWhackerGame {
             }
         }
         
+        // Create visual effects BEFORE clearing
+        if (linesCleared > 0) {
+            this.effectsManager.createLineClearEffect(clearedRows, clearedCols);
+        }
+        
         // Clear the lines
         clearedRows.forEach(y => {
             this.grid[y].fill(0);
@@ -287,6 +304,30 @@ export class BlockWhackerGame {
         this.score += baseScore * multiplier * this.level;
     }
     
+    // ============ GAME OVER & VALIDATION ============
+    
+    checkGameOver() {
+        if (!hasAnyValidMoves(this.grid, this.availableBlocks)) {
+            this.gameOver = true;
+            this.effectsManager.createTextPopup(
+                '💀 GAME OVER! 💀',
+                this.canvas.width / 2,
+                this.canvas.height / 2,
+                true
+            );
+            
+            // Show final score
+            setTimeout(() => {
+                this.effectsManager.createTextPopup(
+                    `Final Score: ${this.score}`,
+                    this.canvas.width / 2,
+                    this.canvas.height / 2 + 50,
+                    false
+                );
+            }, 500);
+        }
+    }
+    
     // ============ UI & GAME CONTROL ============
     
     resetGame() {
@@ -304,6 +345,10 @@ export class BlockWhackerGame {
         this.canUndo = false;
         this.updateUndoButton();
         
+        // Clear effects
+        this.effectsManager.particles = [];
+        this.effectsManager.textPopups = [];
+        
         this.generateNewBlocks();
         this.updateUI();
     }
@@ -317,7 +362,17 @@ export class BlockWhackerGame {
     // ============ GAME LOOP ============
     
     draw() {
+        // Calculate delta time
+        const currentTime = performance.now();
+        const deltaTime = currentTime - this.lastFrameTime;
+        this.lastFrameTime = currentTime;
+        
+        // Update effects
+        this.effectsManager.update(deltaTime / 16); // Normalize to 60fps baseline
+        
+        // Draw everything
         this.renderer.draw();
+        this.effectsManager.draw();
     }
     
     gameLoop() {
