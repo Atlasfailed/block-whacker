@@ -577,8 +577,6 @@ class BlockWhackerGame {
         const offsetX = scaledX - blockWidth / 2;
         const offsetY = scaledY - blockHeight / 2 - fingerOffsetY;
         
-        console.log('Dragging - scaledPos:', {x: scaledX, y: scaledY}, 'offset:', {x: offsetX, y: offsetY}, 'fingerOffsetY:', fingerOffsetY);
-        
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
         this.ctx.strokeStyle = '#fff';
