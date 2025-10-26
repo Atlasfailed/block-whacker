@@ -570,9 +570,13 @@ class BlockWhackerGame {
         const blockWidth = block.shape[0].length * cellSize;
         const blockHeight = block.shape.length * cellSize;
         
-        // Center the block on the cursor/finger position
-        const offsetX = scaledX - blockWidth / 2;
-        const offsetY = scaledY - blockHeight / 2;
+        // Offset the block slightly to the left and up so it's visible while dragging
+        // This prevents your finger from covering the block
+        const fingerOffset = 60; // pixels to offset from finger position
+        
+        // Center the block on the cursor/finger position, then offset
+        const offsetX = scaledX - blockWidth / 2 - fingerOffset;
+        const offsetY = scaledY - blockHeight / 2 - fingerOffset;
         
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
