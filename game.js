@@ -92,11 +92,14 @@ class BlockWhackerGame {
             this.isDragging = true;
             
             // Get initial position
+            const rect = this.canvas.getBoundingClientRect();
             if (e.type === 'mousedown') {
                 this.mousePos = {x: e.clientX, y: e.clientY};
+                this.rawMousePos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             } else if (e.type === 'touchstart') {
                 const touch = e.touches[0];
                 this.mousePos = {x: touch.clientX, y: touch.clientY};
+                this.rawMousePos = {x: touch.clientX - rect.left, y: touch.clientY - rect.top};
             }
             
             this.updateBlockPreviews();
