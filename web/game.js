@@ -570,15 +570,14 @@ class BlockWhackerGame {
         const blockWidth = block.shape[0].length * cellSize;
         const blockHeight = block.shape.length * cellSize;
         
-        // Offset the block significantly to the left and up so it's visible while dragging
-        // Use a larger offset that won't be reduced by scaling
-        const fingerOffset = 200; // Large offset in canvas coordinates to be clearly visible
+        // Offset the block upward so it's visible above the finger while dragging
+        const fingerOffsetY = 120; // Offset upward in canvas coordinates
         
-        // Center the block on the cursor/finger position, then offset
-        const offsetX = scaledX - blockWidth / 2 - fingerOffset;
-        const offsetY = scaledY - blockHeight / 2 - fingerOffset;
+        // Center the block horizontally on the cursor/finger, offset vertically above it
+        const offsetX = scaledX - blockWidth / 2;
+        const offsetY = scaledY - blockHeight / 2 - fingerOffsetY;
         
-        console.log('Dragging - scaledPos:', {x: scaledX, y: scaledY}, 'offset:', {x: offsetX, y: offsetY}, 'fingerOffset:', fingerOffset);
+        console.log('Dragging - scaledPos:', {x: scaledX, y: scaledY}, 'offset:', {x: offsetX, y: offsetY}, 'fingerOffsetY:', fingerOffsetY);
         
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
