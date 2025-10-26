@@ -1,84 +1,111 @@
-# Block Blast - Enhanced Edition
+# Block Whacker - Web Edition
 
-A modern Tetris-inspired block puzzle game built with Python and Pygame.
+A modern block puzzle game with touch controls, optimized for mobile play. Built with vanilla JavaScript and HTML5 Canvas.
+
+🎮 **[Play Now!](https://atlasfailed.github.io/block-whacker/)**
 
 ## Features
 
-- **Progressive Scoring**: 1 line = 100pts, 2 lines = 300pts, 3 lines = 600pts, 4+ lines = 1000pts+
-- **Keyboard Controls**: Arrow keys for movement, R/B for rotation, Space to place
-- **Number Key Selection**: Press 1, 2, or 3 to select blocks with preview
-- **Visual Feedback**: Block previews, score popups, and combo effects
-- **Multiple Game Modes**: Classic mode with more to come
+- ✨ **Mobile-First Design**: Optimized touch controls with drag-and-drop
+- 🎯 **Smart Snapping**: Intelligent block placement assistance
+- ↩️ **Undo System**: One-time undo for the last placed block
+- 🎨 **40+ Block Variations**: Pre-rotated shapes for easy placement
+- 📱 **Responsive Layout**: Works on all screen sizes
+- 🏗️ **Modular Architecture**: Clean ES6 module structure
+
+## How to Play
+
+1. **Select a Block**: Tap/click one of the three blocks at the bottom
+2. **Drag to Place**: Drag the block to your desired position on the grid
+3. **Smart Placement**: The block will snap to the nearest valid position
+4. **Clear Lines**: Complete rows or columns to score points and clear space
+5. **Keep Going**: When all three blocks are used, you get three new ones
 
 ## Controls
 
-### Block Selection
-- **1, 2, 3**: Select blocks (shows preview at cursor)
-- **Mouse Click**: Select blocks in sidebar
+### Touch/Mouse
+- **Tap/Click**: Select a block from the preview boxes
+- **Drag**: Move the block around the grid
+- **Release**: Place the block at the snapped position
 
-### Movement
-- **Arrow Keys**: Move cursor around grid
-- **R or B**: Rotate selected block
-- **Space**: Place block at cursor position
-- **Mouse Click**: Place block at mouse position
+### Buttons
+- **↩️ Undo**: Undo the last placement (one-time use per placement)
+- **🔄 Reset**: Start a new game
 
-### Game Controls
-- **F5**: Reset game
-- **P**: Pause/Unpause
-- **Esc**: Quit game
+### Keyboard (Desktop)
+- **Arrow Keys**: Move cursor
+- **Space/Enter**: Place selected block
+- **Escape**: Deselect block
 
-## Installation
+## Scoring
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Atlasfailed/block-whacker.git
-cd block-whacker
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install pygame
-```
-
-4. Run the game:
-```bash
-./run_game.sh  # On Windows: python main_modular.py
-```
-
-## Game Mechanics
-
-- **Line Clearing**: Complete horizontal or vertical lines to score points
-- **Progressive Scoring**: Multiple lines cleared simultaneously give bonus points
-- **Block Management**: Three blocks available at once, new set generated when all used
-- **Preview System**: See where blocks will be placed before confirming
+- **1 line**: 100 points × level
+- **2 lines**: 300 points × level  
+- **3 lines**: 600 points × level
+- **4+ lines**: 1000+ points × level
 
 ## Project Structure
 
-```
-src/
-├── core/           # Game logic and data structures
-├── ui/             # Rendering and input handling
-├── audio/          # Sound management
-└── utils/          # Utilities and file management
-```
+\`\`\`
+web/
+├── index.html              # Main HTML file
+├── js/
+│   ├── main.js            # Entry point
+│   ├── classes/
+│   │   ├── Game.js        # Core game logic
+│   │   ├── Block.js       # Block shapes and generation
+│   │   ├── InputHandler.js # Event handling
+│   │   └── Renderer.js    # Canvas rendering
+│   └── utils/
+│       ├── constants.js   # Configuration
+│       └── coordinates.js # Coordinate utilities
+└── README.md
+\`\`\`
+
+## Technical Details
+
+### Key Features Implemented
+
+1. **Coordinate Scaling**: Proper transformation between display and canvas coordinates
+2. **Dynamic Finger Offset**: Blocks positioned above finger/cursor for visibility
+3. **Smart Snapping Algorithm**: Manhattan distance search with Euclidean distance selection
+4. **Deep State Management**: Full game state capture for undo functionality
+5. **ES6 Modules**: Modern JavaScript with proper separation of concerns
+
+### Mobile Optimizations
+
+- Touch event handling with \`{passive: false}\` for drag prevention
+- Dynamic offset based on block height (taller blocks = higher offset)
+- 8×8 grid size for larger, easier-to-tap cells
+- Full-width grid layout for maximum playable area
+- Square canvas (420×420) matching grid proportions
 
 ## Development
 
-The game uses a modular architecture with separate managers for different concerns:
-- **GameStateManager**: Handles game logic and scoring
-- **GridManager**: Manages the game grid and line clearing
-- **BlockManager**: Handles block generation and rotation
-- **RendererManager**: Manages all visual rendering
-- **InputHandler**: Processes keyboard and mouse input
-- **AudioManager**: Handles sound effects and music
-- **EffectsManager**: Manages visual effects and animations
+### Running Locally
+
+Simply open \`web/index.html\` in a modern browser, or use a local server:
+
+\`\`\`bash
+cd web
+python -m http.server 8000
+# Visit http://localhost:8000
+\`\`\`
+
+### Deployment
+
+The game is automatically deployed to GitHub Pages from the \`web/\` directory.
+
+## Archive
+
+Legacy Python/Pygame versions and the original monolithic JavaScript version are archived in the \`archive/\` folder.
 
 ## License
 
-This project is open source. Feel free to modify and distribute.
+MIT License - See LICENSE file for details
+
+## Credits
+
+Created by Atlasfailed
+- Repository: https://github.com/Atlasfailed/block-whacker
+- Live Demo: https://atlasfailed.github.io/block-whacker/
