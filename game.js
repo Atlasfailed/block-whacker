@@ -549,6 +549,16 @@ class BlockWhackerGame {
     drawDraggedBlock() {
         const block = this.draggedBlock;
         const color = this.COLORS.blocks[block.colorIndex % this.COLORS.blocks.length];
+        
+        // Get the display size vs internal canvas size
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        
+        // Scale the raw mouse position to canvas coordinates
+        const scaledX = this.rawMousePos.x * scaleX;
+        const scaledY = this.rawMousePos.y * scaleY;
+        
         const cellSize = this.CELL_SIZE;
         
         // Calculate block dimensions
@@ -556,10 +566,10 @@ class BlockWhackerGame {
         const blockHeight = block.shape.length * cellSize;
         
         // Center the block on the cursor/finger position
-        const offsetX = this.rawMousePos.x - blockWidth / 2;
-        const offsetY = this.rawMousePos.y - blockHeight / 2;
+        const offsetX = scaledX - blockWidth / 2;
+        const offsetY = scaledY - blockHeight / 2;
         
-        console.log('Drawing dragged block at rawMousePos:', this.rawMousePos, 'offset:', {x: offsetX, y: offsetY}, 'blockSize:', {w: blockWidth, h: blockHeight});
+        console.log('Drawing dragged block - rawMousePos:', this.rawMousePos, 'scale:', {x: scaleX, y: scaleY}, 'scaled:', {x: scaledX, y: scaledY}, 'offset:', {x: offsetX, y: offsetY});
         
         // Draw the block following the cursor
         this.ctx.fillStyle = color + 'CC'; // More opaque for visibility
