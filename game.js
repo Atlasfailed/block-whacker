@@ -7,7 +7,7 @@ class BlockWhackerGame {
         this.ctx = this.canvas.getContext('2d');
         
         // Game configuration
-        this.GRID_SIZE = 10;
+        this.GRID_SIZE = 8;
         this.CELL_SIZE = 40;
         this.GRID_OFFSET_X = 50;
         this.GRID_OFFSET_Y = 50;
