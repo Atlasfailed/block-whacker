@@ -248,7 +248,7 @@ class BlockWhackerGame {
                     
                     // Check if this position is valid
                     if (this.canPlaceBlock(block, testPos)) {
-                        // Calculate Euclidean distance for smoother feel
+                        // Calculate Euclidean distance - pick the truly closest position
                         const dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < bestDist) {
                             bestDist = dist;
