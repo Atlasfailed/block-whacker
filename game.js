@@ -730,37 +730,6 @@ class BlockWhackerGame {
                 }
             });
         });
-        
-        // Draw ghost preview on grid based on where the VISIBLE dragged block is positioned
-        // Convert the center of the offset block back to grid coordinates
-        const blockCenterX = offsetX + blockWidth / 2;
-        const blockCenterY = offsetY + blockHeight / 2;
-        
-        // Convert these canvas coordinates to screen coordinates, then to grid
-        const screenCenterX = blockCenterX / scaleX;
-        const screenCenterY = blockCenterY / scaleY;
-        const gridPos = this.screenToGrid(screenCenterX, screenCenterY);
-        
-        if (gridPos && this.canPlaceBlock(block, gridPos)) {
-            this.ctx.fillStyle = color + '60'; // Semi-transparent
-            block.shape.forEach((row, dy) => {
-                row.forEach((cell, dx) => {
-                    if (cell) {
-                        const gx = gridPos.x + dx;
-                        const gy = gridPos.y + dy;
-                        
-                        if (gx >= 0 && gx < this.GRID_SIZE && gy >= 0 && gy < this.GRID_SIZE) {
-                            this.ctx.fillRect(
-                                this.GRID_OFFSET_X + gx * this.CELL_SIZE + 2,
-                                this.GRID_OFFSET_Y + gy * this.CELL_SIZE + 2,
-                                this.CELL_SIZE - 4,
-                                this.CELL_SIZE - 4
-                            );
-                        }
-                    }
-                });
-            });
-        }
     }
     
     drawPauseOverlay() {
