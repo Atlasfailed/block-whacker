@@ -309,8 +309,9 @@ export class BlockWhackerGame {
     checkGameOver() {
         if (!hasAnyValidMoves(this.grid, this.availableBlocks)) {
             this.gameOver = true;
-            this.effectsManager.createTextPopup(
-                '💀 GAME OVER! 💀',
+            this.effectsManager.createIconTextPopup(
+                'skull',
+                'GAME OVER!',
                 this.canvas.width / 2,
                 this.canvas.height / 2,
                 true
@@ -321,7 +322,7 @@ export class BlockWhackerGame {
                 this.effectsManager.createTextPopup(
                     `Final Score: ${this.score}`,
                     this.canvas.width / 2,
-                    this.canvas.height / 2 + 50,
+                    this.canvas.height / 2 + 80,
                     false
                 );
             }, 500);
@@ -348,6 +349,7 @@ export class BlockWhackerGame {
         // Clear effects
         this.effectsManager.particles = [];
         this.effectsManager.textPopups = [];
+        this.effectsManager.iconPopups = [];
         
         this.generateNewBlocks();
         this.updateUI();
