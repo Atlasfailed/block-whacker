@@ -34,7 +34,6 @@ class BlockWhackerGame {
         this.selectedBlockIndex = -1;
         this.availableBlocks = [];
         this.cursorPos = {x: 0, y: 0};
-        this.isPaused = false;
         this.gameOver = false;
         
         // Touch/mouse handling
@@ -102,7 +101,6 @@ class BlockWhackerGame {
         });
         
         // Control buttons
-        document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
         document.getElementById('undoBtn').addEventListener('click', () => this.undo());
         
@@ -297,10 +295,6 @@ class BlockWhackerGame {
                 break;
             case '3':
                 this.selectBlock(2);
-                break;
-            case 'p':
-            case 'P':
-                this.togglePause();
                 break;
         }
     }
@@ -553,11 +547,6 @@ class BlockWhackerGame {
         });
     }
     
-    togglePause() {
-        this.isPaused = !this.isPaused;
-        document.getElementById('pauseBtn').textContent = this.isPaused ? '▶️ Resume' : '⏸️ Pause';
-    }
-    
     resetGame() {
         this.score = 0;
         this.level = 1;
@@ -566,7 +555,6 @@ class BlockWhackerGame {
         this.selectedBlock = null;
         this.selectedBlockIndex = -1;
         this.cursorPos = {x: 0, y: 0};
-        this.isPaused = false;
         this.gameOver = false;
         
         // Reset undo state
@@ -576,7 +564,6 @@ class BlockWhackerGame {
         
         this.generateNewBlocks();
         this.updateUI();
-        document.getElementById('pauseBtn').textContent = '⏸️ Pause';
     }
     
     updateUI() {
@@ -604,11 +591,6 @@ class BlockWhackerGame {
         // Draw block preview - either at cursor or following finger/mouse
         if (this.draggedBlock && !this.draggedBlock.used && this.isDragging) {
             this.drawDraggedBlock();
-        }
-        
-        // Draw pause overlay
-        if (this.isPaused) {
-            this.drawPauseOverlay();
         }
     }
     
@@ -732,20 +714,8 @@ class BlockWhackerGame {
         });
     }
     
-    drawPauseOverlay() {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.fillStyle = this.COLORS.text;
-        this.ctx.font = '48px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
-    }
-    
     gameLoop() {
-        if (!this.isPaused) {
-            this.draw();
-        }
+        this.draw();
         requestAnimationFrame(() => this.gameLoop());
     }
 }
