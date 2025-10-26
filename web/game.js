@@ -599,10 +599,18 @@ class BlockWhackerGame {
             });
         });
         
-        // Also draw ghost preview on grid if valid position
-        const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
+        // Draw ghost preview on grid based on where the VISIBLE dragged block is positioned
+        // Convert the center of the offset block back to grid coordinates
+        const blockCenterX = offsetX + blockWidth / 2;
+        const blockCenterY = offsetY + blockHeight / 2;
+        
+        // Convert these canvas coordinates to screen coordinates, then to grid
+        const screenCenterX = blockCenterX / scaleX;
+        const screenCenterY = blockCenterY / scaleY;
+        const gridPos = this.screenToGrid(screenCenterX, screenCenterY);
+        
         if (gridPos && this.canPlaceBlock(block, gridPos)) {
-            this.ctx.fillStyle = color + '60'; // Semi-transparent (increased from 40 for better visibility)
+            this.ctx.fillStyle = color + '60'; // Semi-transparent
             block.shape.forEach((row, dy) => {
                 row.forEach((cell, dx) => {
                     if (cell) {
