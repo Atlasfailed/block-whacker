@@ -174,9 +174,41 @@ class BlockWhackerGame {
     }
     
     updateCursorFromMouse() {
-        const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
-        if (gridPos) {
-            this.cursorPos = gridPos;
+        // If dragging, calculate grid position from the offset block's center (not finger position)
+        if (this.isDragging && this.draggedBlock) {
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            const scaledX = this.rawMousePos.x * scaleX;
+            const scaledY = this.rawMousePos.y * scaleY;
+            
+            const cellSize = this.CELL_SIZE;
+            const blockWidth = this.draggedBlock.shape[0].length * cellSize;
+            const blockHeight = this.draggedBlock.shape.length * cellSize;
+            
+            const fingerOffsetY = 120;
+            const offsetX = scaledX - blockWidth / 2;
+            const offsetY = scaledY - blockHeight / 2 - fingerOffsetY;
+            
+            // Calculate center of the offset block
+            const blockCenterX = offsetX + blockWidth / 2;
+            const blockCenterY = offsetY + blockHeight / 2;
+            
+            // Convert back to screen coordinates then to grid
+            const screenCenterX = blockCenterX / scaleX;
+            const screenCenterY = blockCenterY / scaleY;
+            const gridPos = this.screenToGrid(screenCenterX, screenCenterY);
+            
+            if (gridPos) {
+                this.cursorPos = gridPos;
+            }
+        } else {
+            // Normal cursor tracking when not dragging
+            const gridPos = this.screenToGrid(this.rawMousePos.x, this.rawMousePos.y);
+            if (gridPos) {
+                this.cursorPos = gridPos;
+            }
         }
     }
     
