@@ -175,10 +175,14 @@ export class BlockWhackerGame {
         if (!this.draggedBlock || this.draggedBlock.used) return;
         
         if (this.canPlaceBlock(this.draggedBlock, this.cursorPos)) {
-            // Save state for undo
+            // Save state for undo - deep copy blocks to preserve their state
             this.lastPlacement = {
                 grid: this.grid.map(row => [...row]),
-                block: this.draggedBlock,
+                availableBlocks: this.availableBlocks.map(block => ({
+                    shape: block.shape,
+                    colorIndex: block.colorIndex,
+                    used: block.used
+                })),
                 blockIndex: this.selectedBlockIndex,
                 position: {...this.cursorPos},
                 score: this.score,
@@ -229,8 +233,17 @@ export class BlockWhackerGame {
     undo() {
         if (!this.canUndo || !this.lastPlacement) return;
         
+        // Restore grid
         this.grid = this.lastPlacement.grid;
-        this.lastPlacement.block.used = false;
+        
+        // Restore all blocks state - copy the saved data back to current blocks
+        this.lastPlacement.availableBlocks.forEach((savedBlock, index) => {
+            this.availableBlocks[index].shape = savedBlock.shape;
+            this.availableBlocks[index].colorIndex = savedBlock.colorIndex;
+            this.availableBlocks[index].used = savedBlock.used;
+        });
+        
+        // Restore score and stats
         this.score = this.lastPlacement.score;
         this.linesCleared = this.lastPlacement.linesCleared;
         
