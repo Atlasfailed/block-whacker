@@ -68,20 +68,34 @@ export class Renderer {
     }
     
     drawCursor() {
-        this.ctx.strokeStyle = COLORS.cursor;
-        this.ctx.lineWidth = 3;
+        // Visual feedback: stronger highlight when snapped to valid position
+        if (this.game.isSnapped) {
+            // Snapped - bright highlight with glow
+            this.ctx.strokeStyle = '#00ff00';
+            this.ctx.lineWidth = 4;
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = '#00ff00';
+        } else {
+            // Not snapped - normal cursor
+            this.ctx.strokeStyle = COLORS.cursor;
+            this.ctx.lineWidth = 3;
+            this.ctx.shadowBlur = 0;
+        }
+        
         this.ctx.strokeRect(
             GAME_CONFIG.GRID_OFFSET_X + this.game.cursorPos.x * GAME_CONFIG.CELL_SIZE + 1,
             GAME_CONFIG.GRID_OFFSET_Y + this.game.cursorPos.y * GAME_CONFIG.CELL_SIZE + 1,
             GAME_CONFIG.CELL_SIZE - 2,
             GAME_CONFIG.CELL_SIZE - 2
         );
+        
+        // Reset shadow
+        this.ctx.shadowBlur = 0;
     }
     
     drawDraggedBlock() {
         const block = this.game.draggedBlock;
         const color = COLORS.blocks[block.colorIndex % COLORS.blocks.length];
-        const shapeScale = 0.85; // Scale the entire shape to 85%
         
         // Get the display size vs internal canvas size
         const rect = this.canvas.getBoundingClientRect();
@@ -92,9 +106,9 @@ export class Renderer {
         const scaledX = this.game.rawMousePos.x * scaleX;
         const scaledY = this.game.rawMousePos.y * scaleY;
         
-        const cellSize = GAME_CONFIG.CELL_SIZE * shapeScale; // Scale cell size for entire shape
+        const cellSize = GAME_CONFIG.CELL_SIZE; // Full size cells
         
-        // Calculate block dimensions with scaled cells
+        // Calculate block dimensions
         const blockWidth = block.shape[0].length * cellSize;
         const blockHeight = block.shape.length * cellSize;
         
@@ -147,18 +161,14 @@ export class Renderer {
             const color = COLORS.blocks[block.colorIndex % COLORS.blocks.length];
             const blockWidth = block.shape[0].length;
             const blockHeight = block.shape.length;
-            const shapeScale = 0.85; // Scale entire shape to 85%
             
-            // Calculate base cell size to fit the canvas
-            const baseCellSize = Math.min(
+            // Calculate cell size to fit the canvas with some padding
+            const cellSize = Math.min(
                 (canvas.width - 20) / blockWidth,
                 (canvas.height - 20) / blockHeight
             );
             
-            // Apply scale to the cell size (this creates consistent padding)
-            const cellSize = baseCellSize * shapeScale;
-            
-            // Center the scaled shape
+            // Center the shape
             const totalWidth = blockWidth * cellSize;
             const totalHeight = blockHeight * cellSize;
             const offsetX = (canvas.width - totalWidth) / 2;

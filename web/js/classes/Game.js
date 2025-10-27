@@ -1,6 +1,6 @@
 // Main Game Class - Block Whacker Game Engine
 import { GAME_CONFIG, COLORS, SCORING } from '../utils/constants.js';
-import { screenToGrid, findNearestValidPosition } from '../utils/coordinates.js';
+import { screenToGrid, screenToGridExact, findNearestValidPosition } from '../utils/coordinates.js';
 import { hasAnyValidMoves } from '../utils/gameLogic.js';
 import { Block } from './Block.js';
 import { Renderer } from './Renderer.js';
@@ -34,7 +34,8 @@ export class BlockWhackerGame {
         this.touchStart = null;
         this.isDragging = false;
         this.draggedBlock = null;
-        this.dragOffset = {x: 0, y: 0};
+        this.rawMousePos = {x: 0, y: 0};
+        this.isSnapped = false; // Flag for visual feedback when block is snapped to valid position
         this.mousePos = {x: 0, y: 0};
         this.rawMousePos = {x: 0, y: 0};
         
@@ -73,40 +74,43 @@ export class BlockWhackerGame {
     
     updateCursorFromMouse() {
         if (this.isDragging && this.draggedBlock) {
-            const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
+            // Get exact fractional position
+            const exactPos = screenToGridExact(
+                this.canvas,
+                this.draggedBlock,
+                this.rawMousePos.x,
+                this.rawMousePos.y
+            );
             
-            const scaledX = this.rawMousePos.x * scaleX;
-            const scaledY = this.rawMousePos.y * scaleY;
-            
-            const cellSize = this.CELL_SIZE;
-            const blockWidth = this.draggedBlock.shape[0].length * cellSize;
-            const blockHeight = this.draggedBlock.shape.length * cellSize;
-            
-            const baseOffset = 80;
-            const fingerOffsetY = baseOffset + blockHeight;
-            const offsetX = scaledX - blockWidth / 2;
-            const offsetY = scaledY - blockHeight / 2 - fingerOffsetY;
-            
-            const blockCenterX = offsetX + blockWidth / 2;
-            const blockCenterY = offsetY + blockHeight / 2;
-            
-            const screenCenterX = blockCenterX / scaleX;
-            const screenCenterY = blockCenterY / scaleY;
-            const gridPos = this.screenToGrid(screenCenterX, screenCenterY);
-            
-            if (gridPos) {
-                if (this.canPlaceBlock(this.draggedBlock, gridPos)) {
-                    this.cursorPos = gridPos;
+            if (exactPos) {
+                // Simple rounding to nearest grid position
+                const roundedPos = {
+                    x: Math.round(exactPos.x),
+                    y: Math.round(exactPos.y)
+                };
+                
+                // Calculate distance from exact to rounded position
+                const dx = Math.abs(exactPos.x - roundedPos.x);
+                const dy = Math.abs(exactPos.y - roundedPos.y);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Snap zone: if within 0.35 grid units, snap to that position
+                const snapThreshold = 0.35;
+                
+                if (distance <= snapThreshold && this.canPlaceBlock(this.draggedBlock, roundedPos)) {
+                    // Close enough and valid - snap to it
+                    this.cursorPos = roundedPos;
+                    this.isSnapped = true; // Flag for visual feedback
                 } else {
+                    // Too far or invalid - find nearest valid position
                     const nearest = findNearestValidPosition(
                         this.draggedBlock, 
-                        gridPos, 
+                        roundedPos, 
                         (block, pos) => this.canPlaceBlock(block, pos)
                     );
                     if (nearest) {
                         this.cursorPos = nearest;
+                        this.isSnapped = false;
                     }
                 }
             }
